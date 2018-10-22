@@ -13,15 +13,16 @@ main = do
 
 inicializar :: Int -> IO()
 inicializar opcao = case opcao of
-    1 -> JogarTorre
+    1 -> jogarTorre
     2 -> iaResolve
     3 -> regras
     4 -> sair
     _ -> main
 
-JogarTorre :: IO()
-JogarTorre = do
-    print "fim"
+jogarTorre :: IO()
+jogarTorre = do
+    putStrLn "fim"
+
 
 
 regras :: IO()
@@ -41,7 +42,7 @@ iaResolve = do
     let direita = criarListaVazia $  numeroDeDiscos
     putStrLn (constroiTorre esquerda meio direita)
     let discoRemovido = removeDisco esquerda
-    let opsEsquerda = corrigeHaste esquerda
+    let opsEsquerda = corrigeHaste esquerda [] []
     let novoMeio = inserirDisco meio [] discoRemovido  []
     putStrLn (constroiTorre opsEsquerda novoMeio direita)
 
