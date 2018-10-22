@@ -13,10 +13,15 @@ main = do
 
 inicializar :: Int -> IO()
 inicializar opcao = case opcao of
+    1 -> JogarTorre
     2 -> iaResolve
     3 -> regras
     4 -> sair
     _ -> main
+
+JogarTorre :: IO()
+JogarTorre = do
+    print "fim"
 
 
 regras :: IO()
@@ -28,9 +33,18 @@ regras = do
 iaResolve :: IO()
 iaResolve = do
     putStrLn "\nDigite o numero de discos(Maior ou igual a 3):\n "
-    numeroDeDiscos <- getLine
-    avaliandoNumeroDeDiscos . getNumeroDeDiscos $ (read numeroDeDiscos)
-    putStrLn (show numeroDeDiscos)
+    linha <- getLine
+    let numeroDeDiscos = read linha :: Int
+    avaliandoNumeroDeDiscos . getNumeroDeDiscos $ numeroDeDiscos
+    let esquerda = [1..numeroDeDiscos]
+    let meio = criarListaVazia $  numeroDeDiscos 
+    let direita = criarListaVazia $  numeroDeDiscos
+    putStrLn (constroiTorre esquerda meio direita)
+    let discoRemovido = removeDisco esquerda
+    let opsEsquerda = corrigeHaste esquerda
+    let novoMeio = inserirDisco meio [] discoRemovido  []
+    putStrLn (constroiTorre opsEsquerda novoMeio direita)
+
     putStrLn "fim"
 
 
@@ -56,5 +70,34 @@ erroNumeroDeDiscos = do
 
 continueNumeroDeDiscos :: IO()
 continueNumeroDeDiscos = do
-    putStrLn "\nOK"
+    putStrLn "\n"   
 
+criarLista :: Int -> [Int]
+criarLista numeroDeDiscos = [1..numeroDeDiscos]
+
+criarListaVazia :: Int -> [Int]
+criarListaVazia numeroDeDiscos = replicate numeroDeDiscos 0
+    
+constroiTorre :: [Int] -> [Int] -> [Int] -> String
+constroiTorre esquerda meio direita = (show esquerda) ++ "\n" ++ (show meio) ++ "\n" ++ (show direita) ++ "\n"
+
+inserirDisco :: [Int]-> [Int] -> Int -> [Int] -> [Int] 
+inserirDisco [] (x:xs) elemento discos =  (xs) ++ [elemento] ++ discos
+inserirDisco (x:xs) zeros elemento discos = 
+    if(x == 0)
+        then inserirDisco xs (zeros ++ [x]) elemento discos
+        else inserirDisco xs zeros elemento ([x] ++ discos)
+
+
+removeDisco :: [Int] -> Int
+removeDisco (x:xs) = 
+    if(x /= 0)
+        then x
+        else removeDisco xs
+
+corrigeHaste :: [Int] -> [Int] -> [Int] -> [Int]
+corrigeHaste [] zeros (x:xs) = [0] ++ zeros ++ xs
+corrigeHaste (x:xs) zeros discos = 
+    if(x == 0)
+        then corrigeHaste xs (zeros ++ [x]) discos
+        else corrigeHaste xs zeros (discos ++ [x])
