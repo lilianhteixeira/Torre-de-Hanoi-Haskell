@@ -1,8 +1,3 @@
-{-constTorre :: Integer -> [Integer] -> [Integer] -> [Integer] -> t
-constTorre nDiscos esquerda meio direita = do
-    constLinha nDiscos (head esquerda) (head meio) (head direita)
-    constLinha nDiscos (tail esquerda) (tail meio) (tail direita)
--}
 
 constLinhas :: Integer -> [Integer] -> [Integer] -> [Integer] -> IO()
 constLinhas nDiscos [] [] [] = putStrLn("")
