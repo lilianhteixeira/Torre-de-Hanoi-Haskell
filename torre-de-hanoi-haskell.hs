@@ -1,30 +1,19 @@
 import Data.List
 import System.IO
-import System.Process
-import System.Info
 import Prelude
 import Torre
 
-clearScreen = if (System.Info.os) == "mingw32" then system "cls" else system "clear"
-
 main :: IO()
 main = do
-    putStr "\n\n---Torre De Hanoi---\n Escolha um opcao:\n 1 - Jogar Torre De Hanoi\n 2 - IA Resolve\n 3 - Regras do Jogo\n 4 - Sair\n DIGITE:\n => "
+    clearScreen
+    putStr "\n\n---Torre De Hanoi---\n Escolha um opcao:\n 1 - Jogar Torre De Hanoi\n 2 - IA Resolve\n 3 - Regras do Jogo\n 4 - Sair\n DIGITE:\n"
     escolha <- getLine
     inicializar $ read escolha
 
 reloadMainWithPause :: IO()
 reloadMainWithPause = do
     pause
-    clearScreen
     main
-
-
-reloadMainNoPause :: IO()
-reloadMainNoPause = do
-    clearScreen
-    main
-    
 
 inicializar :: Int -> IO()
 inicializar opcao = case opcao of 
@@ -32,7 +21,7 @@ inicializar opcao = case opcao of
    2 -> iaResolve
    3 -> regras
    4 -> sair
-   _ -> reloadMainNoPause
+   _ -> main
     
     
 escolherDificuldade :: IO()
@@ -53,7 +42,7 @@ vencedor = do
     putStrLn "\nDeseja jogar novamente?\n1 - Sim\n2 - Não"
     opc <- getLine
     let opcao = read opc
-    if (opcao) == 1 then reloadMainNoPause
+    if (opcao) == 1 then main
     else putStrLn "\n    --- Jogo Finalizado ---"
 
 recebeJogada :: Int -> Torres -> IO()
@@ -64,8 +53,10 @@ recebeJogada n torre = do
     else do 
         putStrLn "\nEscolha a torre de origem (A, B ou C)"
         origem <- getChar
+        getLine
         torresSelecionaveis origem
         destino <- getChar
+        getLine
         if  not(jogadaValida torre n origem destino == True) then jogadaInvalida n torre 
         else recebeJogada n (moveDisco [origem] [destino] torre)
 
@@ -93,6 +84,7 @@ pause = do
 
 regras :: IO()
 regras = do
+    clearScreen
     putStrLn  "\n\n -- Torre de Hanoi: --\n   O objetivo deste jogo, consiste em deslocar todos os discos da primeira haste para a ultima haste.\n   Respeitando as seguintes regras:\n\n     1 - Deslocar um disco de cada vez, o qual devera ser o do topo de uma das tres hastes.\n\n     2 - Cada disco nunca podera ser colocado sobre outro de tamanho menor.\n\n"
     reloadMainWithPause
 
@@ -104,7 +96,8 @@ iaResolve = do
     avaliandoNumeroDeDiscos . getNumeroDeDiscos $ numeroDeDiscos
     let torres = inicializaTorres numeroDeDiscos
     (visualizaIA (torres) ((resolucaoIA (torres) ('a') ('b') ('c') (numeroDeDiscos))))
-    putStrLn "fim"
+    putStrLn "Fim"
+    reloadMainWithPause
 
 resolucaoIA :: Torres -> Char -> Char -> Char -> Int -> [Char]
 resolucaoIA torres origem intermediario destino discos | discos == 1 = [origem] ++ [destino]
@@ -118,7 +111,6 @@ visualizaIA torres [] = if ((numDiscos torres ) `mod` 2) == 0
                         then visualizaTorres ((moveDisco (['b']) (['c']) (torres)))
                         else visualizaTorres ((moveDisco (['a']) (['c']) (torres)))
 visualizaIA torres (x:xs) = do
-    clearScreen
     visualizaTorres (torres)
     pause
     visualizaIA (moveDisco ([x]) ([head xs]) (torres)) (tail xs)
