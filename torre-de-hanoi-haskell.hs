@@ -10,6 +10,8 @@ main = do
     escolha <- getLine
     inicializar $ read escolha
 
+
+
 reloadMainWithPause :: IO()
 reloadMainWithPause = do
     pause
@@ -30,51 +32,64 @@ escolherDificuldade = do
     putStrLn "1 - Fácil\n2 - Médio\n3 - Dificil"
     opc <- getLine
     let opcao = read opc
-    if opcao == 1 then recebeJogada 3 (inicializaTorres 3)
-    else if opcao == 2 then recebeJogada 4 (inicializaTorres 4)
-    else if opcao == 3 then recebeJogada 5 (inicializaTorres 5)
+    if opcao == 1 then recebeJogada 3 (inicializaTorres 3) 0
+    else if opcao == 2 then recebeJogada 4 (inicializaTorres 4) 0
+    else if opcao == 3 then recebeJogada 5 (inicializaTorres 5) 0
     else  do 
         putStrLn "Digite um número válido.\n"
         pause
         escolherDificuldade
 
-vencedor :: IO()
-vencedor = do
+vencedor :: Int -> Int -> IO()
+vencedor movimentos numeroDeDiscos = do
     clearScreen
-    putStrLn "Parabéns você ganhou !!!"
+    (verificaDesempenho movimentos numeroDeDiscos)
     putStrLn "\nDeseja jogar novamente?\n1 - Sim\n2 - Não"
     opc <- getLine
     let opcao = read opc
     if (opcao) == 1 then main
     else putStrLn "\n    --- Jogo Finalizado ---"
 
-recebeJogada :: Int -> Torres -> IO()
-recebeJogada n torre = do
+verificaDesempenho :: Int -> Int -> IO()
+verificaDesempenho movimentos numeroDeDiscos | movimentos == ideal = putStrLn ("\nParabéns, voce ganhou e sua pontuacao foi excelente " ++ show(movimentos) ++ " de " ++ show(ideal) ++ ".")
+                                             | movimentos > ideal && movimentos < (ideal+5) = putStrLn ("\nParabéns, voce ganhou e sua pontuacao foi abaixo da media " ++ show(movimentos) ++ " de " ++ show(ideal) ++ ".\nNão desista e tente novamente! :)")
+                                             | otherwise = putStrLn ("\nParabeéns, voce ganhou e sua pontuacao foi ruim " ++ show(movimentos) ++ " de " ++ show(ideal) ++ ".\nNão desista e tente novamente! :)")
+                                             where ideal = (2^numeroDeDiscos) - 1
+
+
+
+recebeJogada :: Int -> Torres -> Int -> IO()
+recebeJogada n torre movimentos = do
     clearScreen
     visualizaTorres torre
-    if (ganhouJogo n torre) == True then vencedor 
+    if (ganhouJogo n torre) == True then (vencedor movimentos (numDiscos torre)) 
     else do 
+        putStrLn ("\nMovimentos: " ++ (show movimentos))
         putStrLn "\nEscolha a torre de origem (A, B ou C)"
         origem <- getChar
         getLine
         torresSelecionaveis origem
         destino <- getChar
         getLine
-        if  not(jogadaValida torre n origem destino == True) then jogadaInvalida n torre 
-        else recebeJogada n (moveDisco [origem] [destino] torre)
+        if  not(jogadaValida torre n origem destino == True) then jogadaInvalida n torre movimentos
+        else recebeJogada n (moveDisco [origem] [destino] torre) (movimentos+ 1)
 
 torresSelecionaveis :: Char -> IO()
 torresSelecionaveis opc | opc == 'a' || opc == 'A' = putStrLn "\nEscolha a torre de destino (B ou C)"
                         | opc == 'b' || opc == 'B' = putStrLn "\nEscolha a torre de destino (A ou C)"
                         | otherwise = putStrLn "\nEscolha a torre de destino (A ou B)"
 
-jogadaInvalida :: Int -> Torres -> IO()
-jogadaInvalida n torre = do 
-    putStrLn "\nJogada inválida\n" 
-    recebeJogada n torre 
+jogadaInvalida :: Int -> Torres -> Int -> IO()
+jogadaInvalida n torre movimentos = do 
+    putStrLn "\nJogada inválida\n"
+    pause
+    recebeJogada n torre movimentos
   
 jogadaValida :: Torres -> Int -> Char -> Char -> Bool
-jogadaValida torres n origem destino = topo (getTorre [destino] torres) == 0 || (topo(getTorre [origem]  torres  ) < topo(getTorre [destino] torres))
+jogadaValida torres n origem destino = do
+            if (torresValidas origem && torresValidas destino)
+               then topo (getTorre [destino] torres) == 0 || (topo(getTorre [origem]  torres  ) < topo(getTorre [destino] torres))
+            else False
 
 ganhouJogo :: Int -> Torres -> Bool
 ganhouJogo n torres = (getTorre "C" torres ) == [n,n-1..0]
@@ -99,7 +114,7 @@ iaResolve = do
     let numeroDeDiscos = read linha :: Int
     if (validaEntrada numeroDeDiscos) then do
     let torres = inicializaTorres numeroDeDiscos
-    (visualizaIA (torres) ((resolucaoIA (torres) ('a') ('b') ('c') (numeroDeDiscos))))
+    (visualizaIA (torres) ((resolucaoIA (torres) ('a') ('b') ('c') (numeroDeDiscos))) (0))
     putStrLn "Fim"
     reloadMainWithPause
     else erroNumeroDeDiscos
@@ -111,14 +126,17 @@ resolucaoIA torres origem intermediario destino discos | discos == 1 = [origem] 
                                                                  ++ [origem] ++ [destino] ++
                                                        (resolucaoIA torres intermediario origem destino (discos-1))
 
-visualizaIA :: Torres -> [Char] -> IO()
-visualizaIA torres [] = if ((numDiscos torres ) `mod` 2) == 0
-                        then visualizaTorres ((moveDisco (['b']) (['c']) (torres)))
+visualizaIA :: Torres -> [Char] -> Int -> IO()
+visualizaIA torres [] movimentos = do
+                        if ((numDiscos torres ) `mod` 2) == 0
+                            then visualizaTorres ((moveDisco (['b']) (['c']) (torres)))
                         else visualizaTorres ((moveDisco (['a']) (['c']) (torres)))
-visualizaIA torres (x:xs) = do
+                        putStrLn ("\nMovimentos: " ++ show(movimentos) ++ "\n")
+visualizaIA torres (x:xs) movimentos = do
     visualizaTorres (torres)
+    putStrLn ("\nMovimentos: " ++ show(movimentos))
     pause
-    visualizaIA (moveDisco ([x]) ([head xs]) (torres)) (tail xs)
+    visualizaIA (moveDisco ([x]) ([head xs]) (torres)) (tail xs) (movimentos+1)
 
 sair :: IO()
 sair = do
@@ -130,6 +148,12 @@ validaEntrada numeroDeDiscos =
     if(numeroDeDiscos < 3)
         then False
     else True
+
+torresValidas :: Char -> Bool
+torresValidas letra | letra == 'a' || letra == 'A' = True
+                    | letra == 'b' || letra == 'B' = True
+                    | letra == 'c' || letra == 'C' = True
+                    | otherwise                    = False
 
 erroNumeroDeDiscos :: IO()
 erroNumeroDeDiscos = do
