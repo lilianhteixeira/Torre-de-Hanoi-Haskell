@@ -21,7 +21,7 @@ inicializar opcao = case opcao of
    2 -> iaResolve
    3 -> regras
    4 -> sair
-   _ -> main
+   _ -> validaMain
     
     
 escolherDificuldade :: IO()
@@ -33,7 +33,10 @@ escolherDificuldade = do
     if opcao == 1 then recebeJogada 3 (inicializaTorres 3)
     else if opcao == 2 then recebeJogada 4 (inicializaTorres 4)
     else if opcao == 3 then recebeJogada 5 (inicializaTorres 5)
-    else  putStrLn "Digite um número válido."
+    else  do 
+        putStrLn "Digite um número válido.\n"
+        pause
+        escolherDificuldade
 
 vencedor :: IO()
 vencedor = do
@@ -94,11 +97,12 @@ iaResolve = do
     putStrLn "\nDigite o numero de discos(Maior ou igual a 3):\n "
     linha <- getLine
     let numeroDeDiscos = read linha :: Int
-    avaliandoNumeroDeDiscos . getNumeroDeDiscos $ numeroDeDiscos
+    if (validaEntrada numeroDeDiscos) then do
     let torres = inicializaTorres numeroDeDiscos
     (visualizaIA (torres) ((resolucaoIA (torres) ('a') ('b') ('c') (numeroDeDiscos))))
     putStrLn "Fim"
     reloadMainWithPause
+    else erroNumeroDeDiscos
 
 resolucaoIA :: Torres -> Char -> Char -> Char -> Int -> [Char]
 resolucaoIA torres origem intermediario destino discos | discos == 1 = [origem] ++ [destino]
@@ -121,21 +125,21 @@ sair = do
     putStrLn "\n    --- Jogo Finalizado ---"
 
 
-getNumeroDeDiscos :: Int -> Bool
-getNumeroDeDiscos numeroDeDiscos = 
+validaEntrada :: Int -> Bool
+validaEntrada numeroDeDiscos = 
     if(numeroDeDiscos < 3)
         then False
-        else True
-
-avaliandoNumeroDeDiscos :: Bool -> IO()
-avaliandoNumeroDeDiscos False = erroNumeroDeDiscos
-avaliandoNumeroDeDiscos True = continueNumeroDeDiscos
+    else True
 
 erroNumeroDeDiscos :: IO()
 erroNumeroDeDiscos = do
     putStrLn "\nError - Numero De Discos Menor Que 3"
+    pause
     iaResolve
 
-continueNumeroDeDiscos :: IO()
-continueNumeroDeDiscos = do
-    putStrLn "\n"   
+
+validaMain :: IO()
+validaMain = do
+    putStrLn "\nOpção Inválida!"
+    pause
+    main
