@@ -25,7 +25,7 @@ pop [] _ = []
 pop (x:xs) ultimoDisco | x /= 0 && x == ultimoDisco = 0 : xs
                    | otherwise = x : (pop xs ultimoDisco)
 
-getTorre :: String -> Torres -> [Int]
+getTorre :: [Char] -> Torres -> [Int]
 getTorre letra torres | letra == "a" || letra == "A" = torreA torres
                       | letra == "b" || letra == "B" = torreB torres
                       | otherwise                    = torreC torres
