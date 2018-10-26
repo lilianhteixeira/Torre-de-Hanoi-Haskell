@@ -90,6 +90,7 @@ regras = do
 
 iaResolve :: IO()
 iaResolve = do
+    clearScreen
     putStrLn "\nDigite o numero de discos(Maior ou igual a 3):\n "
     linha <- getLine
     let numeroDeDiscos = read linha :: Int
