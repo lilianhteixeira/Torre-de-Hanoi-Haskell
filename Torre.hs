@@ -1,11 +1,16 @@
 module Torre where
 
+import System.Info
+import System.Process
+
 data Torres = Torres {
     torreA :: [Int],
     torreB :: [Int],
     torreC :: [Int],
     numDiscos :: Int
 } deriving (Show, Read)
+
+clearScreen = if (System.Info.os) == "mingw32" then system "cls" else system "clear"
 
 insereDisco :: String -> Torres -> Int -> Torres
 insereDisco letra torre disco = atualizaTorre (letra) (torre) (push torreLetra (disco) (topo torreLetra))
@@ -80,7 +85,9 @@ atualizaTorre letra torres torreAtualizada | letra == "a" || letra == "A" = Torr
                                                                                    (numDiscos torres)
 
 visualizaTorres :: Torres -> IO()
-visualizaTorres torres = constLinhas (numDiscos torres) (torreA torres) (torreB torres) (torreC torres)
+visualizaTorres torres = do
+    clearScreen
+    constLinhas (numDiscos torres) (torreA torres) (torreB torres) (torreC torres)
 
 
 constLinhas :: Int -> [Int] -> [Int] -> [Int] -> IO()
